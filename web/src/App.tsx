@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import Storefront from './components/Storefront';
 import Chat from './components/Chat';
+import Footer from './components/Footer';
 import Backstage from './components/Backstage';
 import { BackstageIcon } from './components/Icons';
 import { useChat } from './hooks/useChat';
@@ -301,15 +302,16 @@ export default function App() {
   return (
     <>
       <div
-        className={`h-full transition-[margin-right] duration-300 ease-out ${
+        className={`flex h-screen flex-col transition-[margin-right] duration-300 ease-out ${
           drawerOpen ? 'mr-[440px]' : ''
         }`}
       >
         <Header />
-        <main className="mx-auto grid h-[calc(100vh-4rem)] max-w-7xl grid-cols-[1fr_400px] gap-6 px-8 py-6">
+        <main className="mx-auto grid w-full min-h-0 max-w-7xl flex-1 grid-cols-[1fr_400px] gap-6 px-8 py-6">
           <Storefront products={sortedProducts} onAdd={onAdd} />
           <Chat messages={messages} onSend={sendChat} showConfirm={showConfirm} />
         </main>
+        <Footer />
       </div>
 
       {/* discreet backstage toggle */}
