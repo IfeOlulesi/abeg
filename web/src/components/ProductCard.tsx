@@ -1,14 +1,20 @@
-import { catalogFor } from '../lib/catalog.js';
-import { naira, stockTag } from '../lib/format.js';
-import { PlusIcon } from './Icons.jsx';
+import { catalogFor } from '../lib/catalog';
+import { naira, stockTag } from '../lib/format';
+import { PlusIcon } from './Icons';
+import type { Product } from '../types';
 
-const TAG_TONE = {
+const TAG_TONE: Record<string, string> = {
   amber: 'text-amber-700',
   green: 'text-green-700',
   stone: 'text-stone-500',
 };
 
-export default function ProductCard({ product, onAdd }) {
+interface ProductCardProps {
+  product: Product;
+  onAdd: (product: Product) => void;
+}
+
+export default function ProductCard({ product, onAdd }: ProductCardProps) {
   const meta = catalogFor(product.sku);
   const tag = stockTag(product.available);
 

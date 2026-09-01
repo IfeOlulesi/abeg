@@ -19,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import agent, db, seed
 from app import tools
-from app.config import settings
+from app.config import settings, AVAILABLE_MODELS
 from app.events import bus, make_event
 from app.providers.stt import get_stt
 
@@ -64,6 +64,14 @@ def _state() -> dict:
         "llm_provider": settings.llm_provider,
         "stt_provider": settings.stt_provider,
         "reservation_ttl_seconds": settings.reservation_ttl_seconds,
+        # Workshop knobs.
+        "temperature": settings.temperature,
+        "max_tool_calls": settings.max_tool_calls,
+        "model": settings.openrouter_model,
+        "models": AVAILABLE_MODELS,
+        "system_prompt": settings.system_prompt or agent.SYSTEM_PROMPT,
+        "default_system_prompt": agent.SYSTEM_PROMPT,
+        "system_prompt_customized": bool(settings.system_prompt),
     }
 
 
@@ -301,6 +309,44 @@ async def control_cached(request: Request):
     body = await _safe_json(request)
     settings.cached_mode = bool(body.get("on"))
     bus.publish(make_event("cached", {"on": settings.cached_mode}))
+    return _state()
+
+
+@app.post("/api/control/temperature")
+async def control_temperature(request: Request):
+    body = await _safe_json(request)
+    try:
+        value = float(body.get("value"))
+    except (TypeError, ValueError):
+        value = settings.temperature
+    # Clamp to a sane, demo-safe range.
+    settings.temperature = max(0.0, min(1.5, value))
+    bus.publish(make_event("state", _state()))
+    return _state()
+
+
+@app.post("/api/control/model")
+async def control_model(request: Request):
+    body = await _safe_json(request)
+    model = str(body.get("model") or "")
+    allowed = {m["id"] for m in AVAILABLE_MODELS}
+    if model in allowed:
+        settings.openrouter_model = model
+        bus.publish(make_event("state", _state()))
+    return _state()
+
+
+@app.post("/api/control/system_prompt")
+async def control_system_prompt(request: Request):
+    body = await _safe_json(request)
+    if body.get("reset"):
+        settings.system_prompt = ""
+    else:
+        prompt = body.get("prompt")
+        if isinstance(prompt, str):
+            # Cap length so a paste can't blow up the context window.
+            settings.system_prompt = prompt.strip()[:4000]
+    bus.publish(make_event("state", _state()))
     return _state()
 
 

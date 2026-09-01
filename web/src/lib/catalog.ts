@@ -1,6 +1,8 @@
+import type { CatalogMeta } from '../types';
+
 // SKU → presentation metadata. The backend has no images, so emoji + gradient
 // + blurb are hardcoded here and merged with the live product data by SKU.
-export const CATALOG = {
+export const CATALOG: Record<string, CatalogMeta> = {
   JOLLOF: { emoji: '🍚', gradient: 'from-amber-100 to-orange-200', blurb: 'Smoky, party-style' },
   SUYA: { emoji: '🍢', gradient: 'from-rose-100 to-red-200', blurb: 'Spicy grilled skewers' },
   PUFFPUFF: { emoji: '🍩', gradient: 'from-yellow-100 to-amber-200', blurb: '6 golden pieces' },
@@ -13,8 +15,8 @@ export const CATALOG = {
   PEPPERSOUP: { emoji: '🍲', gradient: 'from-red-100 to-rose-200', blurb: 'Catfish, peppery broth' },
 };
 
-const FALLBACK = { emoji: '🍽️', gradient: 'from-stone-100 to-stone-200', blurb: '' };
+const FALLBACK: CatalogMeta = { emoji: '🍽️', gradient: 'from-stone-100 to-stone-200', blurb: '' };
 
-export function catalogFor(sku) {
+export function catalogFor(sku: string): CatalogMeta {
   return CATALOG[sku] || FALLBACK;
 }

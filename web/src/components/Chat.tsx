@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent, PointerEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useVoice } from '../hooks/useVoice.js';
-import { BotIcon, MicIcon, SendIcon, CheckIcon } from './Icons.jsx';
+import { useVoice } from '../hooks/useVoice';
+import { BotIcon, MicIcon, SendIcon, CheckIcon, ShieldIcon } from './Icons';
+import type { ChatMessage } from '../types';
 
 function TypingDots() {
   return (
@@ -14,7 +16,26 @@ function TypingDots() {
   );
 }
 
-function Message({ msg }) {
+function Spinner({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Live "what the agent is doing right now" line (searching, thinking…).
+function StatusLine({ label }: { label: string }) {
+  return (
+    <div className="mt-1.5 flex items-center gap-2 text-[13px] font-medium italic text-stone-400">
+      <Spinner className="h-3.5 w-3.5 animate-spin text-stone-300" />
+      {label}
+    </div>
+  );
+}
+
+function Message({ msg }: { msg: ChatMessage }) {
   if (msg.role === 'user') {
     return (
       <div className="max-w-[85%] self-end rounded-2xl rounded-tr-md bg-brand px-4 py-2.5 text-[15px] font-medium text-white">
@@ -23,27 +44,39 @@ function Message({ msg }) {
     );
   }
   const empty = !msg.text;
+  const showDots = empty && !msg.status && !msg.guardNote && msg.streaming;
   return (
     <div className="max-w-[92%] self-start rounded-2xl rounded-tl-md bg-stone-100 px-4 py-2.5 text-stone-700">
-      {empty && msg.streaming ? (
-        <TypingDots />
-      ) : (
+      {msg.guardNote && (
+        <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[11.5px] font-semibold text-amber-700 ring-1 ring-amber-100">
+          <ShieldIcon className="h-3 w-3" />
+          {msg.guardNote}
+        </div>
+      )}
+      {!empty && (
         <div className="md">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
         </div>
       )}
+      {msg.status ? <StatusLine label={msg.status} /> : showDots ? <TypingDots /> : null}
     </div>
   );
 }
 
-export default function Chat({ messages, onSend, showConfirm }) {
-  const [input, setInput] = useState('');
-  const [micNote, setMicNote] = useState(null);
-  const listRef = useRef(null);
-  const inputRef = useRef(null);
+interface ChatProps {
+  messages: ChatMessage[];
+  onSend: (text: string) => void;
+  showConfirm: boolean;
+}
 
-  const onInterim = useCallback((t) => setInput(t), []);
-  const onNote = useCallback((n) => setMicNote(n), []);
+export default function Chat({ messages, onSend, showConfirm }: ChatProps) {
+  const [input, setInput] = useState('');
+  const [micNote, setMicNote] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const onInterim = useCallback((t: string) => setInput(t), []);
+  const onNote = useCallback((n: string | null) => setMicNote(n), []);
   const { recording, start, stop } = useVoice({ onInterim, onNote });
 
   // Autoscroll to newest message / streamed token.
@@ -59,7 +92,7 @@ export default function Chat({ messages, onSend, showConfirm }) {
     onSend(text);
   };
 
-  const onKeyDown = (e) => {
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       submit();
@@ -67,11 +100,11 @@ export default function Chat({ messages, onSend, showConfirm }) {
   };
 
   // Hold-to-talk: pointer events cover mouse + touch.
-  const micDown = (e) => {
+  const micDown = (e: PointerEvent<HTMLButtonElement>) => {
     e.preventDefault();
     start();
   };
-  const micUp = async (e) => {
+  const micUp = async (e: PointerEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const text = await stop();
     setInput('');

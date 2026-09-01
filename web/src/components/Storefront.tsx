@@ -1,6 +1,12 @@
-import ProductCard from './ProductCard.jsx';
+import ProductCard from './ProductCard';
+import type { Product } from '../types';
 
-export default function Storefront({ products, onAdd }) {
+interface StorefrontProps {
+  products: Product[];
+  onAdd: (product: Product) => void;
+}
+
+export default function Storefront({ products, onAdd }: StorefrontProps) {
   return (
     <section className="flex min-h-0 flex-col">
       <div className="mb-4 flex items-end justify-between">

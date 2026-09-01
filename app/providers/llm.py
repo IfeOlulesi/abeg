@@ -34,10 +34,15 @@ class OpenRouterLlm(LlmProvider):
         self.model = model or settings.openrouter_model
 
     async def stream(self, messages: list[dict], tools: list[dict]) -> AsyncIterator[dict]:
+        # Read model + temperature live so Workshop knob changes take effect on
+        # the very next turn without reconstructing the provider.
         payload = {
-            "model": self.model,
+            "model": settings.openrouter_model or self.model,
             "messages": messages,
             "stream": True,
+            "temperature": settings.temperature,
+            # Ask OpenRouter to include token counts + cost in the final chunk.
+            "usage": {"include": True},
         }
         if tools:
             payload["tools"] = tools
@@ -51,6 +56,7 @@ class OpenRouterLlm(LlmProvider):
         # Accumulator for streamed tool_call deltas, keyed by index.
         tool_acc: dict[int, dict] = {}
         finish_reason = "stop"
+        usage: dict | None = None
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(120.0)) as client:
             async with client.stream("POST", OPENROUTER_URL, json=payload, headers=headers) as resp:
@@ -67,6 +73,9 @@ class OpenRouterLlm(LlmProvider):
                         chunk = json.loads(data)
                     except json.JSONDecodeError:
                         continue
+                    # Usage arrives on the final chunk (often with empty choices).
+                    if chunk.get("usage"):
+                        usage = chunk["usage"]
                     choices = chunk.get("choices") or []
                     if not choices:
                         continue
@@ -110,6 +119,8 @@ class OpenRouterLlm(LlmProvider):
             yield {"type": "tool_calls", "tool_calls": calls}
             finish_reason = "tool_calls"
 
+        if usage:
+            yield {"type": "usage", "usage": usage}
         yield {"type": "done", "finish_reason": finish_reason}
 
 

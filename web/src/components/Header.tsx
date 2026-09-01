@@ -1,4 +1,4 @@
-import { BagIcon } from './Icons.jsx';
+import { BagIcon } from './Icons';
 
 export default function Header() {
   return (

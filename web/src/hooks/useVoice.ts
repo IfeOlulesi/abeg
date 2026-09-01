@@ -2,8 +2,25 @@ import { useCallback, useRef, useState } from 'react';
 
 const TARGET_RATE = 16000;
 
+interface VoiceHandlers {
+  onInterim?: (t: string) => void;
+  onNote?: (n: string | null) => void;
+}
+
+interface VoiceState {
+  active: boolean;
+  stream: MediaStream | null;
+  audioCtx: AudioContext | null;
+  processor: ScriptProcessorNode | null;
+  source: MediaStreamAudioSourceNode | null;
+  ws: WebSocket | null;
+  finalTranscript: string;
+  interimTranscript: string;
+  lastFinal: string;
+}
+
 // Linear resample Float32 [-1,1] → 16k Int16 LE PCM. Ported verbatim from app.js.
-function floatTo16kPCM(input, inRate) {
+function floatTo16kPCM(input: Float32Array, inRate: number): Int16Array {
   const ratio = inRate / TARGET_RATE;
   const outLen = Math.floor(input.length / ratio);
   const out = new Int16Array(outLen);
@@ -23,9 +40,9 @@ function floatTo16kPCM(input, inRate) {
 // downsample → WS /ws/stt binary frames. Live interim transcript is surfaced
 // via onInterim; the final transcript is returned from stop() to be sent
 // through the chat pipeline. Mic-denied is handled gracefully with a note.
-export function useVoice({ onInterim, onNote }) {
+export function useVoice({ onInterim, onNote }: VoiceHandlers) {
   const [recording, setRecording] = useState(false);
-  const st = useRef({
+  const st = useRef<VoiceState>({
     active: false,
     stream: null,
     audioCtx: null,
@@ -52,7 +69,7 @@ export function useVoice({ onInterim, onNote }) {
     onNote?.(null);
     onInterim?.('');
 
-    let stream;
+    let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
@@ -67,8 +84,8 @@ export function useVoice({ onInterim, onNote }) {
     const ws = new WebSocket(proto + '//' + location.host + '/ws/stt');
     ws.binaryType = 'arraybuffer';
     s.ws = ws;
-    ws.onmessage = (m) => {
-      let msg;
+    ws.onmessage = (m: MessageEvent) => {
+      let msg: any;
       try {
         msg = JSON.parse(m.data);
       } catch {
@@ -106,19 +123,19 @@ export function useVoice({ onInterim, onNote }) {
       /* handled on release */
     };
 
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const audioCtx = new AudioCtx();
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const audioCtx: AudioContext = new AudioCtx();
     s.audioCtx = audioCtx;
     const inRate = audioCtx.sampleRate;
     const source = audioCtx.createMediaStreamSource(stream);
     s.source = source;
     const processor = audioCtx.createScriptProcessor(4096, 1, 1);
     s.processor = processor;
-    processor.onaudioprocess = (e) => {
+    processor.onaudioprocess = (e: AudioProcessingEvent) => {
       if (!s.active) return;
       const input = e.inputBuffer.getChannelData(0);
       const pcm = floatTo16kPCM(input, inRate);
-      if (ws.readyState === WebSocket.OPEN) ws.send(pcm.buffer);
+      if (ws.readyState === WebSocket.OPEN) ws.send(pcm.buffer as ArrayBuffer);
     };
     source.connect(processor);
     processor.connect(audioCtx.destination);

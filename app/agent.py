@@ -5,6 +5,7 @@ layer (SSE) can forward them directly while the operator stream also sees them.
 """
 import json
 import re
+import time
 from typing import AsyncIterator
 
 import asyncpg
@@ -17,19 +18,40 @@ from app.tools import TOOL_FUNCS, TOOL_SCHEMAS
 # Per-session running message history (OpenAI chat format).
 SESSIONS: dict[str, list[dict]] = {}
 
+# Base prompt: the ordering *behaviour*, kept neutral on where facts come from.
+# The "grounding" knob owns the fact-discipline (see GROUNDING_ON/OFF below), so
+# flipping it produces a visible change a beginner can feel — the whole point of
+# the Workshop.
 SYSTEM_PROMPT = (
     "You are Abeg, a concise order-taking assistant for a Nigerian food vendor. "
-    "You only learn about products, prices and stock by calling tools — never invent "
-    "a product, price, discount or availability. "
+    "You have tools to look up products, prices and stock, hold items and place orders. "
     "If the customer's requested product or quantity is unclear or missing, ASK a short "
     "clarifying question instead of assuming. "
-    "Reject items that are not on the menu rather than guessing a similar one. "
     "Order flow: once the customer names the item(s) and quantity, call reserve_items, "
     "then show them the exact items, quantities, unit prices and total and ask them to confirm. "
     "As soon as they confirm (e.g. 'yes'), IMMEDIATELY call place_order for that reservation and "
     "give them the order reference. Do not ask them to confirm twice. "
     "A customer name is OPTIONAL — never ask for it; if they did not give one, place the order without it. "
+    "Work quietly: do NOT announce that you are about to look something up, and do NOT narrate or name "
+    "the tools you use (no 'let me check…'). Just use the tools you need, then reply ONCE with a short, "
+    "friendly final answer. "
     "Keep every reply short and friendly."
+)
+
+# Appended when grounding is ON — force answers to come from real tool data.
+GROUNDING_ON = (
+    "\n\nSTAY GROUNDED: Only state a price or stock number you have obtained from a tool in "
+    "THIS conversation. If the customer asks about something you have not looked up, call a "
+    "tool first. If an item is not on the menu, say so plainly — never guess or invent a "
+    "price, discount or availability."
+)
+
+# Appended when grounding is OFF — let the model answer from memory (it will
+# happily make up plausible prices, which is exactly the lesson).
+GROUNDING_OFF = (
+    "\n\nGROUNDING OFF (demo mode): You may answer from your own general knowledge. If you do "
+    "not have exact data from a tool, give your best guess of a price or quantity rather than "
+    "refusing — approximate freely and confidently."
 )
 
 # Heuristic for the ungrounded-answer guard: a digit near a money/stock keyword.
@@ -40,7 +62,67 @@ _UNGROUNDED_RE = re.compile(
 
 
 def _system_message() -> dict:
-    return {"role": "system", "content": SYSTEM_PROMPT}
+    # Workshop lets a learner edit the live prompt; empty => built-in default.
+    # The grounding knob appends a fact-discipline clause so toggling it visibly
+    # changes behaviour on the very next turn.
+    base = settings.system_prompt or SYSTEM_PROMPT
+    clause = GROUNDING_ON if settings.guardrails else GROUNDING_OFF
+    return {"role": "system", "content": base + clause}
+
+
+def _tool_activity_label(name: str, args: dict) -> str:
+    """Present-continuous, human label shown live in chat while a tool runs."""
+    args = args or {}
+    if name == "search_inventory":
+        return "Looking through the menu"
+    if name == "check_stock":
+        sku = args.get("sku") or ""
+        return f"Checking the stock of {sku}" if sku else "Checking the stock"
+    if name == "reserve_items":
+        return "Holding your items"
+    if name == "place_order":
+        return "Placing your order"
+    if name == "cancel_reservation":
+        return "Cancelling the hold"
+    return "Working on it"
+
+
+def _tool_step(name: str, args: dict, result: dict, ms: int) -> dict:
+    """Turn a raw tool call+result into a plain-language trace step.
+
+    No JSON in the UI — just "what the AI asked the database and what it heard
+    back", so a beginner can follow the loop.
+    """
+    args = args or {}
+    result = result or {}
+    title = "Used a tool"
+    outcome = ""
+    if name == "search_inventory":
+        title = "Looked through the menu"
+        n = len(result.get("results") or result.get("products") or [])
+        outcome = f"found {n} item{'s' if n != 1 else ''}" if n else "checked live prices & stock"
+    elif name == "check_stock":
+        title = "Checked the stock of one item"
+        label = result.get("name") or result.get("sku") or args.get("sku") or ""
+        avail = result.get("available")
+        outcome = f"{label}: {avail} left" if avail is not None else (label or "checked stock")
+    elif name == "reserve_items":
+        if result.get("refused") or result.get("error"):
+            title = "Tried to hold the items — refused"
+            outcome = str(result.get("reason") or result.get("error") or "not enough stock")
+        else:
+            items = ", ".join(
+                f"{i.get('qty')}× {i.get('name') or i.get('sku')}" for i in (result.get("items") or [])
+            )
+            title = "Held the items for checkout"
+            outcome = items or "reservation created"
+    elif name == "place_order":
+        title = "Placed the order"
+        outcome = result.get("reference") or "order created"
+    elif name == "cancel_reservation":
+        title = "Cancelled the hold"
+        outcome = "reservation released"
+    return {"kind": "tool", "name": name, "title": title, "outcome": outcome, "ms": ms}
 
 
 def _assistant_tool_call_message(tool_calls: list[dict]) -> dict:
@@ -106,6 +188,14 @@ async def run_turn(
     bounded_hit = False
     emitted_any_text = False   # have we streamed visible text yet this turn?
 
+    # ---- trace instrumentation (powers the Workshop "Anatomy" panel) ----
+    t0 = time.perf_counter()
+    ttft_ms: int | None = None                 # time to first visible token
+    steps: list[dict] = [{"kind": "user", "text": user_text}]
+    usage_totals = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    cost_usd = 0.0
+    saw_usage = False
+
     while True:
         assistant_text_parts: list[str] = []
         pending_tool_calls: list[dict] = []
@@ -116,6 +206,8 @@ async def run_turn(
             if itype == "delta":
                 text = item.get("text", "")
                 if text:
+                    if ttft_ms is None:
+                        ttft_ms = int((time.perf_counter() - t0) * 1000)
                     # Separate a post-tool-call reply from earlier text with a
                     # blank line so they render as distinct Markdown paragraphs.
                     prefix = "\n\n" if (emitted_any_text and not segment_started) else ""
@@ -127,6 +219,16 @@ async def run_turn(
                     yield ev
             elif itype == "tool_calls":
                 pending_tool_calls = item.get("tool_calls", [])
+            elif itype == "usage":
+                u = item.get("usage") or {}
+                saw_usage = True
+                usage_totals["prompt_tokens"] += int(u.get("prompt_tokens") or 0)
+                usage_totals["completion_tokens"] += int(u.get("completion_tokens") or 0)
+                usage_totals["total_tokens"] += int(u.get("total_tokens") or 0)
+                try:
+                    cost_usd += float(u.get("cost") or 0.0)
+                except (TypeError, ValueError):
+                    pass
             elif itype == "done":
                 pass
 
@@ -135,6 +237,9 @@ async def run_turn(
 
         if not pending_tool_calls:
             break
+
+        # The model paused to use tools — record that decision in the trace.
+        steps.append({"kind": "decide", "count": len(pending_tool_calls)})
 
         # Record the assistant's tool-call intent in the transcript.
         messages.append(_assistant_tool_call_message(pending_tool_calls))
@@ -148,7 +253,21 @@ async def run_turn(
             tool_calls_this_turn += 1
             name = call["name"]
             arguments = call.get("arguments", {})
+            # Tell the UI what we're doing so the wait isn't a silent gap.
+            act = make_event(
+                "activity",
+                {"state": "start", "label": _tool_activity_label(name, arguments), "tool": name},
+                session_id,
+            )
+            bus.publish(act)
+            yield act
+            t_call = time.perf_counter()
             result = await _dispatch_tool(pool, session_id, name, arguments)
+            call_ms = int((time.perf_counter() - t_call) * 1000)
+            end = make_event("activity", {"state": "end", "tool": name}, session_id)
+            bus.publish(end)
+            yield end
+            steps.append(_tool_step(name, arguments, result, call_ms))
             messages.append(
                 {
                     "role": "tool",
@@ -176,8 +295,19 @@ async def run_turn(
             "you'd like so I can complete your order?"
         )
 
-    # Ungrounded-answer guard (only when guardrails on and no tool ran this turn).
-    if settings.guardrails and tool_calls_this_turn == 0 and _UNGROUNDED_RE.search(final_text):
+    # Ungrounded-answer guard: only a true backstop for a COLD answer. Fire only
+    # when guardrails are on, no tool ran this turn, the session has never used a
+    # tool (so the number can't be grounded in earlier lookups — avoids nuking
+    # legit follow-ups like "and how much for two?"), and the text quotes a figure.
+    session_ever_grounded = any(m.get("role") == "tool" for m in messages)
+    grounding_blocked = False
+    if (
+        settings.guardrails
+        and tool_calls_this_turn == 0
+        and not session_ever_grounded
+        and _UNGROUNDED_RE.search(final_text)
+    ):
+        grounding_blocked = True
         notice = make_event("notice", {"message": "ungrounded answer blocked"}, session_id)
         bus.publish(notice)
         yield notice
@@ -189,6 +319,31 @@ async def run_turn(
     # Persist assistant turn to history.
     messages.append({"role": "assistant", "content": final_text})
     SESSIONS[session_id] = messages
+
+    # Close the trace with the AI's reply, then publish the "Anatomy" summary.
+    steps.append({"kind": "reply", "text": final_text})
+    total_ms = int((time.perf_counter() - t0) * 1000)
+    trace = make_event(
+        "turn_trace",
+        {
+            "steps": steps,
+            "model": settings.openrouter_model,
+            "temperature": settings.temperature,
+            "cached": settings.cached_mode,
+            "guardrails": settings.guardrails,
+            "grounding_blocked": grounding_blocked,
+            "bounded_hit": bounded_hit,
+            "tool_calls": tool_calls_this_turn,
+            "tokens": usage_totals if saw_usage else None,
+            "cost_usd": round(cost_usd, 6) if saw_usage else None,
+            "ttft_ms": ttft_ms,
+            "total_ms": total_ms,
+            "context_messages": len(messages),
+        },
+        session_id,
+    )
+    bus.publish(trace)
+    yield trace
 
     done = make_event("assistant_done", {"text": final_text}, session_id)
     bus.publish(done)

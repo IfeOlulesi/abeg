@@ -1,17 +1,21 @@
 import { useEffect, useRef } from 'react';
+import type { OperatorEvent } from '../types';
 
 // Subscribes to GET /api/events (operator SSE). Ported from app.js: the native
 // EventSource auto-reconnects, but if it fully closes we re-create it. The
 // latest `onEvent` is held in a ref so re-renders don't tear down the stream.
-export function useOperatorEvents(onEvent, onConn) {
+export function useOperatorEvents(
+  onEvent: (ev: OperatorEvent) => void,
+  onConn: (connected: boolean) => void
+) {
   const onEventRef = useRef(onEvent);
   const onConnRef = useRef(onConn);
   onEventRef.current = onEvent;
   onConnRef.current = onConn;
 
   useEffect(() => {
-    let source = null;
-    let retryTimer = null;
+    let source: EventSource | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
     let closed = false;
 
     const connect = () => {
@@ -24,9 +28,9 @@ export function useOperatorEvents(onEvent, onConn) {
         return;
       }
       source.onopen = () => onConnRef.current?.(true);
-      source.onmessage = (m) => {
+      source.onmessage = (m: MessageEvent) => {
         if (!m.data) return;
-        let ev;
+        let ev: OperatorEvent;
         try {
           ev = JSON.parse(m.data);
         } catch {
