@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Abeg — System Architecture</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+      colors: { brand: { DEFAULT: '#F0532B' } },
+    } } };
+  </script>
+  <style> body{-webkit-font-smoothing:antialiased} .lbl{ box-shadow:0 2px 8px -4px rgba(0,0,0,.25) } </style>
+</head>
+<body class="bg-[#FAF7F5] font-sans text-stone-800">
+  <div class="mx-auto max-w-[1300px] px-8 py-9">
+
+    <div class="mb-6 flex items-center gap-3">
+      <div class="grid h-11 w-11 place-items-center rounded-2xl bg-brand text-white shadow-sm">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight">How the pieces fit together</h1>
+        <p class="text-stone-500">The four parts of Abeg and how they talk to each other.</p>
+      </div>
+    </div>
+
+    <div class="relative rounded-3xl bg-white/50 ring-1 ring-stone-100" style="height:640px">
+      <!-- connecting lines -->
+      <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1236 640" fill="none" preserveAspectRatio="none">
+        <defs>
+          <marker id="arw" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto">
+            <path d="M1,1 L7,4.5 L1,8" fill="none" stroke="#9ca3af" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <!-- App <-> Server -->
+        <path d="M318,320 L470,320" stroke="#cbd5e1" stroke-width="2.5" marker-start="url(#arw)" marker-end="url(#arw)"/>
+        <!-- Server -> Chat AI -->
+        <path d="M772,285 C840,285 860,150 928,150" stroke="#cbd5e1" stroke-width="2.5" marker-start="url(#arw)" marker-end="url(#arw)"/>
+        <!-- Server -> Voice AI -->
+        <path d="M772,320 C850,320 860,300 928,300" stroke="#cbd5e1" stroke-width="2.5" marker-start="url(#arw)" marker-end="url(#arw)"/>
+        <!-- Server -> Database -->
+        <path d="M772,360 C850,360 860,500 928,500" stroke="#cbd5e1" stroke-width="2.5" marker-start="url(#arw)" marker-end="url(#arw)"/>
+      </svg>
+
+      <!-- edge labels -->
+      <div class="lbl absolute -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-500 ring-1 ring-stone-100" style="left:394px;top:296px">your order · live updates</div>
+      <div class="lbl absolute -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-500 ring-1 ring-stone-100" style="left:855px;top:196px">“what do they mean?”</div>
+      <div class="lbl absolute -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-500 ring-1 ring-stone-100" style="left:858px;top:322px">voice → text</div>
+      <div class="lbl absolute -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-500 ring-1 ring-stone-100" style="left:852px;top:452px">check stock · save orders</div>
+
+      <!-- faint AI grouping label -->
+      <div class="absolute text-[11px] font-bold uppercase tracking-widest text-stone-400" style="left:944px;top:70px">☁️ AI services (in the cloud)</div>
+
+      <!-- 1. The App -->
+      <div class="lbl absolute rounded-3xl bg-white p-5 ring-1 ring-brand/20" style="left:38px;top:230px;width:280px">
+        <div class="flex items-center gap-3">
+          <div class="grid h-11 w-11 place-items-center rounded-xl bg-brand/10 text-2xl">🛍️</div>
+          <div>
+            <div class="text-[17px] font-extrabold">The App</div>
+            <div class="text-xs font-semibold text-brand">what you see</div>
+          </div>
+        </div>
+        <p class="mt-3 text-[14px] leading-relaxed text-stone-500">Runs in your web browser — the shop, the chat, and the microphone.</p>
+      </div>
+
+      <!-- 2. The Server -->
+      <div class="lbl absolute rounded-3xl bg-white p-5 ring-1 ring-stone-200" style="left:472px;top:210px;width:300px">
+        <div class="flex items-center gap-3">
+          <div class="grid h-11 w-11 place-items-center rounded-xl bg-stone-900 text-2xl text-white">⚙️</div>
+          <div>
+            <div class="text-[17px] font-extrabold">The Server</div>
+            <div class="text-xs font-semibold text-stone-500">the engine · the assistant lives here</div>
+          </div>
+        </div>
+        <p class="mt-3 text-[14px] leading-relaxed text-stone-500">Takes each request, runs the AI assistant, and coordinates the database and AI services. <span class="text-stone-400">(Python · FastAPI)</span></p>
+      </div>
+
+      <!-- 3a. Chat AI -->
+      <div class="lbl absolute rounded-3xl bg-white p-4 ring-1 ring-violet-200" style="left:928px;top:100px;width:290px">
+        <div class="flex items-center gap-3">
+          <div class="grid h-10 w-10 place-items-center rounded-xl bg-violet-100 text-xl">🧠</div>
+          <div>
+            <div class="text-[16px] font-extrabold">Chat AI</div>
+            <div class="text-xs text-stone-400">OpenRouter · DeepSeek</div>
+          </div>
+        </div>
+        <p class="mt-2 text-[13.5px] leading-relaxed text-stone-500">Understands language and decides what to do next.</p>
+      </div>
+
+      <!-- 3b. Voice AI -->
+      <div class="lbl absolute rounded-3xl bg-white p-4 ring-1 ring-sky-200" style="left:928px;top:250px;width:290px">
+        <div class="flex items-center gap-3">
+          <div class="grid h-10 w-10 place-items-center rounded-xl bg-sky-100 text-xl">👂</div>
+          <div>
+            <div class="text-[16px] font-extrabold">Voice AI</div>
+            <div class="text-xs text-stone-400">Deepgram</div>
+          </div>
+        </div>
+        <p class="mt-2 text-[13.5px] leading-relaxed text-stone-500">Turns your spoken words into text.</p>
+      </div>
+
+      <!-- 4. Database -->
+      <div class="lbl absolute rounded-3xl bg-white p-5 ring-1 ring-green-200" style="left:928px;top:430px;width:290px">
+        <div class="flex items-center gap-3">
+          <div class="grid h-11 w-11 place-items-center rounded-xl bg-green-100 text-2xl">🗄️</div>
+          <div>
+            <div class="text-[17px] font-extrabold">The Database</div>
+            <div class="text-xs text-stone-400">PostgreSQL</div>
+          </div>
+        </div>
+        <p class="mt-3 text-[14px] leading-relaxed text-stone-500">The memory. Stores the menu, how much is in stock, and every order placed.</p>
+      </div>
+    </div>
+
+    <p class="mt-5 text-center text-[14px] text-stone-500">
+      The <b class="text-stone-700">Server</b> is the hub: your <b class="text-stone-700">App</b> talks only to it, and it does the rest —
+      asking the <b class="text-violet-600">AI</b>, listening via <b class="text-sky-600">Voice AI</b>, and reading/writing the <b class="text-green-600">Database</b>.
+    </p>
+  </div>
+</body>
+</html>

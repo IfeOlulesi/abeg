@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How Abeg works</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+      colors: { brand: { DEFAULT: '#F0532B' } },
+    } } };
+  </script>
+  <style> body{-webkit-font-smoothing:antialiased} </style>
+</head>
+<body class="bg-[#FAF7F5] font-sans text-stone-800">
+  <div class="mx-auto max-w-6xl px-8 py-10">
+
+    <div class="flex items-center gap-3">
+      <div class="grid h-11 w-11 place-items-center rounded-2xl bg-brand text-white shadow-sm">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight">How Abeg works</h1>
+        <p class="text-stone-500">A quick tour of the food-ordering assistant — no tech knowledge needed.</p>
+      </div>
+    </div>
+
+    <!-- the 4-step journey -->
+    <div class="mt-9 grid grid-cols-1 items-stretch gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
+
+      <!-- 1 -->
+      <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
+        <div class="flex items-center gap-3">
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-brand/10 text-sm font-bold text-brand">1</span>
+          <div class="text-4xl">🗣️</div>
+        </div>
+        <h3 class="mt-3 text-lg font-bold">You ask</h3>
+        <p class="mt-1 text-[15px] leading-relaxed text-stone-500">Type your order, or hold the mic and just <b class="text-stone-700">say it out loud</b> — like talking to a waiter.</p>
+      </div>
+
+      <div class="hidden place-items-center text-3xl text-stone-300 md:grid">›</div>
+
+      <!-- 2 -->
+      <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
+        <div class="flex items-center gap-3">
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-violet-100 text-sm font-bold text-violet-600">2</span>
+          <div class="text-4xl">🤖</div>
+        </div>
+        <h3 class="mt-3 text-lg font-bold">The assistant understands</h3>
+        <p class="mt-1 text-[15px] leading-relaxed text-stone-500">A smart assistant works out what you want — and if it's unsure, it <b class="text-stone-700">asks</b> instead of guessing.</p>
+      </div>
+
+      <div class="hidden place-items-center text-3xl text-stone-300 md:grid">›</div>
+
+      <!-- 3 -->
+      <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
+        <div class="flex items-center gap-3">
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-green-100 text-sm font-bold text-green-600">3</span>
+          <div class="text-4xl">📦</div>
+        </div>
+        <h3 class="mt-3 text-lg font-bold">It checks real stock</h3>
+        <p class="mt-1 text-[15px] leading-relaxed text-stone-500">It <b class="text-stone-700">never makes up</b> prices or what's available — it checks the real kitchen list every time.</p>
+      </div>
+
+      <div class="hidden place-items-center text-3xl text-stone-300 md:grid">›</div>
+
+      <!-- 4 -->
+      <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
+        <div class="flex items-center gap-3">
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-amber-100 text-sm font-bold text-amber-600">4</span>
+          <div class="text-4xl">🧾</div>
+        </div>
+        <h3 class="mt-3 text-lg font-bold">Your order is placed</h3>
+        <p class="mt-1 text-[15px] leading-relaxed text-stone-500">You confirm, the order is <b class="text-stone-700">saved</b>, and you get a reference number. Done!</p>
+      </div>
+    </div>
+
+    <!-- helpers strip -->
+    <div class="mt-4 rounded-3xl bg-white/60 p-5 ring-1 ring-stone-100">
+      <p class="text-center text-sm text-stone-500">
+        Two cloud helpers do the heavy lifting behind the assistant:
+        <span class="mx-1 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 font-semibold text-stone-700">🧠 an AI “brain” for the conversation</span>
+        <span class="mx-1 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 font-semibold text-stone-700">👂 an AI “ear” that turns your voice into words</span>
+      </p>
+    </div>
+
+    <!-- two feature cards -->
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
+        <div class="flex items-center gap-3">
+          <div class="grid h-10 w-10 place-items-center rounded-xl bg-stone-900 text-lg text-white">🎛️</div>
+          <h3 class="text-lg font-bold">A peek behind the counter</h3>
+        </div>
+        <p class="mt-2 text-[15px] leading-relaxed text-stone-500">There's a hidden <b class="text-stone-700">“Backstage”</b> panel the presenter can slide open to watch, live, everything the assistant is doing — what it looked up, what it reserved, and each order as it happens.</p>
+      </div>
+
+      <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-rose-100">
+        <div class="flex items-center gap-3">
+          <div class="grid h-10 w-10 place-items-center rounded-xl bg-rose-500 text-lg text-white">🍽️</div>
+          <h3 class="text-lg font-bold">The big moment: the last plate</h3>
+        </div>
+        <p class="mt-2 text-[15px] leading-relaxed text-stone-500">What if <b class="text-stone-700">two people order the last one at the exact same time?</b> We show it both ways — the <b class="text-green-600">safe way</b> (only one wins) and the <b class="text-rose-500">careless way</b> (both win and stock drops below zero). That contrast is the whole point of the demo.</p>
+      </div>
+    </div>
+
+    <!-- for the curious -->
+    <p class="mt-6 text-center text-[13px] text-stone-400">
+      For the curious, under the hood: a Python web app, a small database that holds the menu and orders,
+      and two AI services (one for chat, one for voice).
+    </p>
+  </div>
+</body>
+</html>

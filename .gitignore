@@ -1,0 +1,39 @@
+# Secrets & environment — NEVER commit real keys
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / Vite
+node_modules/
+web/node_modules/
+web/dist/
+npm-debug.log*
+yarn-error.log*
+
+# Docker / DB volumes
+pgdata/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Agent / Conductor workspace tooling (not part of the app)
+.claude/
+.context/
+.eng
+
+# Logs
+*.log

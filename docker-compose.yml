@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:17
+    container_name: abeg-postgres
+    environment:
+      POSTGRES_USER: abeg
+      POSTGRES_PASSWORD: abeg
+      POSTGRES_DB: abeg
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abeg"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - abeg_pgdata:/var/lib/postgresql/data
+
+  # The app. `docker compose up` builds the image (React + FastAPI) and runs it.
+  # For local dev you usually only need the db (`docker compose up -d db`) and
+  # run uvicorn on the host via ./run.sh.
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Override the .env default so the container reaches the db service.
+      DATABASE_URL: postgresql://abeg:abeg@db:5432/abeg
+    ports:
+      - "8000:8000"
+
+volumes:
+  abeg_pgdata:

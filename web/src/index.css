@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+    background: #faf7f5;
+    @apply font-sans text-stone-800;
+  }
+}
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Slim scrollbars to match the mockup. */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #e7e5e4;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Typing dots. */
+@keyframes dots {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.dot {
+  animation: dots 1.2s infinite;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* Recording pulse for the mic button. */
+@keyframes micpulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(240, 83, 43, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(240, 83, 43, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(240, 83, 43, 0);
+  }
+}
+.mic-recording {
+  animation: micpulse 1.4s infinite;
+}
+
+/* ---- Markdown inside assistant bubbles ----
+   Keep it clean and compact so streamed replies look intentional, not raw. */
+.md {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.md > *:first-child {
+  margin-top: 0;
+}
+.md > *:last-child {
+  margin-bottom: 0;
+}
+.md p {
+  margin: 0.4rem 0;
+}
+.md strong {
+  font-weight: 700;
+  color: #1c1917;
+}
+.md em {
+  font-style: italic;
+}
+.md a {
+  color: #e24721;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md h1,
+.md h2,
+.md h3,
+.md h4 {
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0.6rem 0 0.3rem;
+  line-height: 1.3;
+}
+.md h1 {
+  font-size: 1.1rem;
+}
+.md h2 {
+  font-size: 1.05rem;
+}
+.md h3 {
+  font-size: 1rem;
+}
+.md ul,
+.md ol {
+  margin: 0.4rem 0;
+  padding-left: 1.15rem;
+}
+.md ul {
+  list-style: disc;
+}
+.md ol {
+  list-style: decimal;
+}
+.md li {
+  margin: 0.15rem 0;
+}
+.md li::marker {
+  color: #a8a29e;
+}
+.md code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  background: #f5f5f4;
+  border: 1px solid #e7e5e4;
+  border-radius: 6px;
+  padding: 0.05rem 0.3rem;
+}
+.md pre {
+  background: #1c1917;
+  color: #fafaf9;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+.md pre code {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 0;
+  font-size: 0.82em;
+}
+.md blockquote {
+  border-left: 3px solid #e7e5e4;
+  padding-left: 0.75rem;
+  color: #78716c;
+  margin: 0.5rem 0;
+}
+.md hr {
+  border: 0;
+  border-top: 1px solid #e7e5e4;
+  margin: 0.7rem 0;
+}
+.md table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  font-size: 0.9em;
+}
+.md thead th {
+  text-align: left;
+  font-weight: 700;
+  color: #57534e;
+  border-bottom: 1px solid #e7e5e4;
+  padding: 0.35rem 0.5rem;
+}
+.md tbody td {
+  border-bottom: 1px solid #f5f5f4;
+  padding: 0.35rem 0.5rem;
+  vertical-align: top;
+}
+.md tbody tr:last-child td {
+  border-bottom: 0;
+}
