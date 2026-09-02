@@ -51,6 +51,10 @@ class OpenRouterLlm(LlmProvider):
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            # OpenRouter uses these to identify the app; anonymous datacenter
+            # traffic (e.g. a cloud host's shared IP) gets throttled harder.
+            "HTTP-Referer": settings.app_url,
+            "X-Title": "Abeg",
         }
 
         # Accumulator for streamed tool_call deltas, keyed by index.

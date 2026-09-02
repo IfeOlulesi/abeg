@@ -37,11 +37,6 @@ AVAILABLE_MODELS = [
         "label": "Claude 3.5 Haiku",
         "note": "Fast and careful with instructions",
     },
-    {
-        "id": "google/gemini-2.0-flash-001",
-        "label": "Gemini 2.0 Flash",
-        "note": "Google's quick model",
-    },
 ]
 
 
@@ -86,6 +81,10 @@ class Settings:
     )
     deepgram_api_key: str = field(
         default_factory=lambda: os.getenv("DEEPGRAM_API_KEY", "")
+    )
+    # Public URL, sent to OpenRouter as HTTP-Referer for app identification.
+    app_url: str = field(
+        default_factory=lambda: os.getenv("APP_URL", "https://abeg-production.up.railway.app")
     )
 
 

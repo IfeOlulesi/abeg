@@ -256,9 +256,22 @@ async def api_chat(request: Request):
             async for event in agent.run_turn(app.state.pool, session_id, message):
                 yield _sse(event)
         except Exception as exc:  # noqa: BLE001
-            err = make_event("error", {"message": str(exc)}, session_id)
-            bus.publish(err)
-            yield _sse(err)
+            low = str(exc).lower()
+            if any(k in low for k in ("403", "429", "forbidden", "rate limit", "too many")):
+                # Upstream (OpenRouter/Deepgram) throttle — show a calm message,
+                # not a scary raw error, so the demo never looks broken.
+                ev = make_event(
+                    "assistant_done",
+                    {
+                        "text": "The demo's AI is catching its breath — the shared model is briefly "
+                        "rate-limited. Please try again in a moment. 🙏"
+                    },
+                    session_id,
+                )
+            else:
+                ev = make_event("error", {"message": str(exc)}, session_id)
+            bus.publish(ev)
+            yield _sse(ev)
 
     return StreamingResponse(gen(), media_type="text/event-stream", headers=_SSE_HEADERS)
 
