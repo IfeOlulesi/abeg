@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="docs/images/abeg-logo.png" width="76" alt="Abeg" />
-
-# Abeg
+<h1><img src="docs/images/abeg-logo.png" width="40" align="middle" alt="" />&nbsp; Abeg</h1>
 
 **A food-ordering assistant you talk or type to, grounded in a real database.
 Built to show the two things that separate a real AI feature from a toy: keeping the model honest, and keeping it on task.**
