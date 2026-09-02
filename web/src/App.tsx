@@ -3,7 +3,6 @@ import Header from './components/Header';
 import Storefront from './components/Storefront';
 import Chat from './components/Chat';
 import Backstage from './components/Backstage';
-import { BackstageIcon } from './components/Icons';
 import { useChat } from './hooks/useChat';
 import { useOperatorEvents } from './hooks/useOperatorEvents';
 import { getState, getProducts, post } from './lib/api';
@@ -34,6 +33,9 @@ export default function App() {
   const [cached, setCached] = useState(false);
   const [connected, setConnected] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // In-app view: the shop, or one of the explainer diagrams (rendered inline so
+  // the navbar/chrome stays — no full-page redirect).
+  const [view, setView] = useState<'home' | 'how' | 'system'>('home');
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [scripts, setScripts] = useState<Script[]>([]);
@@ -305,27 +307,29 @@ export default function App() {
           drawerOpen ? 'mr-[440px]' : ''
         }`}
       >
-        <Header />
-        <main className="mx-auto grid w-full min-h-0 max-w-7xl flex-1 grid-cols-[1fr_400px] gap-6 px-8 py-6">
-          <Storefront products={sortedProducts} onAdd={onAdd} />
-          <Chat messages={messages} onSend={sendChat} showConfirm={showConfirm} />
-        </main>
-      </div>
-
-      {/* discreet backstage toggle */}
-      <button
-        type="button"
-        onClick={() => setDrawerOpen(true)}
-        className="fixed bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white"
-        title="Open the Workshop (B)"
-      >
-        <BackstageIcon className="h-4 w-4" />
-        Workshop
-        <span
-          className={`ml-0.5 h-2 w-2 rounded-full ${connected ? 'bg-green-400' : 'bg-stone-500'}`}
-          title={connected ? 'Live' : 'Reconnecting…'}
+        <Header
+          activeView={view}
+          connected={connected}
+          onHome={() => setView('home')}
+          onShowDiagram={(kind) => setView(kind)}
+          onOpenWorkshop={() => setDrawerOpen(true)}
         />
-      </button>
+        {view === 'home' ? (
+          <main className="mx-auto grid w-full min-h-0 max-w-7xl flex-1 grid-cols-[1fr_400px] gap-6 px-8 py-6">
+            <Storefront products={sortedProducts} onAdd={onAdd} />
+            <Chat messages={messages} onSend={sendChat} showConfirm={showConfirm} />
+          </main>
+        ) : (
+          <div className="min-h-0 w-full flex-1">
+            <iframe
+              key={view}
+              title={view === 'how' ? 'How Abeg works' : 'System architecture'}
+              src={view === 'how' ? '/static/architecture.html' : '/static/system.html'}
+              className="h-full w-full border-0 bg-[#faf7f5] dark:bg-stone-950"
+            />
+          </div>
+        )}
+      </div>
 
       <Backstage
         open={drawerOpen}
