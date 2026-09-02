@@ -318,7 +318,7 @@ export default function App() {
       <button
         type="button"
         onClick={() => setDrawerOpen(true)}
-        className="fixed bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-stone-800"
+        className="fixed bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white"
         title="Open the Workshop (B)"
       >
         <BackstageIcon className="h-4 w-4" />

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   // The push-drawer toggles this margin at runtime; keep it in the build.
   safelist: ['mr-[440px]'],

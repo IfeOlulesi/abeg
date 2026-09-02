@@ -19,7 +19,7 @@ export default function ProductCard({ product, onAdd }: ProductCardProps) {
   const tag = stockTag(product.available);
 
   return (
-    <article className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-stone-100 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-stone-200/60">
+    <article className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-stone-100 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-stone-200/60 dark:bg-stone-900 dark:ring-stone-800">
       <div
         className={`relative grid aspect-[5/4] place-items-center bg-gradient-to-br ${meta.gradient} text-7xl ${
           tag.soldOut ? 'grayscale' : ''
@@ -35,15 +35,15 @@ export default function ProductCard({ product, onAdd }: ProductCardProps) {
         </span>
       </div>
       <div className="p-4">
-        <h3 className="font-bold text-stone-900">{product.name}</h3>
-        <p className="text-[13px] text-stone-400">{meta.blurb}</p>
+        <h3 className="font-bold text-stone-900 dark:text-stone-100">{product.name}</h3>
+        <p className="text-[13px] text-stone-400 dark:text-stone-500">{meta.blurb}</p>
         <div className="mt-3 flex items-center justify-between">
-          <span className="tnum text-lg font-extrabold text-stone-900">{naira(product.price)}</span>
+          <span className="tnum text-lg font-extrabold text-stone-900 dark:text-stone-100">{naira(product.price)}</span>
           <button
             type="button"
             disabled={tag.soldOut}
             onClick={() => onAdd(product)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400"
+            className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-stone-700 dark:disabled:text-stone-500"
           >
             <PlusIcon className="h-4 w-4" />
             Add

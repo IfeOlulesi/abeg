@@ -11,14 +11,14 @@ export default function Storefront({ products, onAdd }: StorefrontProps) {
     <section className="flex min-h-0 flex-col">
       <div className="mb-4 flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-stone-900">
+          <h1 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-100">
             What are you craving? 👋
           </h1>
-          <p className="mt-0.5 text-sm text-stone-500">
+          <p className="mt-0.5 text-sm text-stone-500 dark:text-stone-400">
             Fresh from the kitchen — order by tapping Add, or just ask the assistant.
           </p>
         </div>
-        <div className="hidden items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-stone-500 ring-1 ring-stone-100 sm:flex">
+        <div className="hidden items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-stone-500 ring-1 ring-stone-100 sm:flex dark:bg-stone-900 dark:text-stone-400 dark:ring-stone-800">
           <span className="tnum">{products.length} items</span>
         </div>
       </div>

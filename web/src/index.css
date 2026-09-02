@@ -13,6 +13,15 @@
     background: #faf7f5;
     @apply font-sans text-stone-800;
   }
+  .dark body {
+    background: #0c0a09;
+    @apply text-stone-200;
+  }
+}
+
+/* Dark-mode scrollbar thumb (warm near-black surfaces). */
+.dark ::-webkit-scrollbar-thumb {
+  background: #44403c;
 }
 
 @layer utilities {
@@ -188,4 +197,41 @@
 }
 .md tbody tr:last-child td {
   border-bottom: 0;
+}
+
+/* ---- Markdown in dark mode (assistant bubble is dark:bg-stone-800) ---- */
+.dark .md strong,
+.dark .md h1,
+.dark .md h2,
+.dark .md h3,
+.dark .md h4 {
+  color: #fafaf9;
+}
+.dark .md a {
+  color: #ff7a56;
+}
+.dark .md li::marker {
+  color: #78716c;
+}
+.dark .md code {
+  background: #292524;
+  border-color: #44403c;
+  color: #e7e5e4;
+}
+.dark .md pre {
+  background: #0c0a09;
+}
+.dark .md blockquote {
+  border-left-color: #57534e;
+  color: #a8a29e;
+}
+.dark .md hr {
+  border-top-color: #44403c;
+}
+.dark .md thead th {
+  color: #d6d3d1;
+  border-bottom-color: #44403c;
+}
+.dark .md tbody td {
+  border-bottom-color: #292524;
 }
