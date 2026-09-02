@@ -1,179 +1,129 @@
 <div align="center">
 
-# 🛍️ Abeg — the AI order agent
+<img src="docs/images/abeg-logo.png" width="76" alt="Abeg" />
 
-**A warm little food shop where customers order by chat *or* voice — and a hands-on lesson in the two guardrails every real AI product needs: don't make things up, and don't get talked into someone else's job.**
+# Abeg
 
-[![Live demo](https://img.shields.io/badge/▶_Live_demo-abeg.ifeolulesi.com-F0532B.svg)](https://abeg.ifeolulesi.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-F0532B.svg)](LICENSE)
-![TypeScript](https://img.shields.io/badge/React-TS%20%2B%20Tailwind-38BDF8.svg)
-![Python](https://img.shields.io/badge/Python-FastAPI-3776AB.svg)
-![Postgres](https://img.shields.io/badge/DB-PostgreSQL-336791.svg)
+**A food-ordering assistant you talk or type to, grounded in a real database.
+Built to show the two things that separate a real AI feature from a toy: keeping the model honest, and keeping it on task.**
 
-### ▶ **Try it live: [abeg.ifeolulesi.com](https://abeg.ifeolulesi.com)**
+[**Live demo**](https://abeg.ifeolulesi.com) &nbsp;·&nbsp; [Recording](https://selar.com/38531854y1) &nbsp;·&nbsp; [MIT License](LICENSE)
 
-<img src="docs/images/storefront.png" alt="Abeg storefront and order assistant" width="820" />
+<img src="docs/images/storefront.png" width="820" alt="The Abeg storefront and order assistant" />
 
 </div>
 
----
+## Why I built it
 
-## What is this?
+I built Abeg as the live demo for my *Break Into AI Engineering* masterclass. It looks like a small food shop, but the shop is just the excuse. The real subject is what makes an AI feature trustworthy instead of embarrassing.
 
-**Abeg** ("please" in Nigerian Pidgin) is a small but complete demo: a food shop where customers order by **typing or talking** to an AI assistant. The assistant can only learn about products, prices and stock by **calling tools against a real database** — it never makes anything up.
+A screenshot went around a while back: someone asked the McDonald's support bot to reverse a linked list in Python, and it happily wrote the code instead of taking their order.
 
-It was built as the live demo for the **Break Into AI Engineering** masterclass, to make three ideas you can *feel* instead of just hear about:
+<img src="docs/images/mcdonalds-incident.png" width="340" alt="A support bot writing Python instead of taking an order" />
 
-1. **A grounded agent works.** A customer orders by voice and by chat; stock moves; a real order is created — every price and quantity pulled from Postgres.
-2. **Guardrails are the job.** Flip a switch and watch the AI **hallucinate a price** or get **prompt-injected into writing code** — then flip it back and watch it hold the line. (More below.)
-3. **Systems still bite.** Two customers race for the *last plate* at the same instant: in naive mode the shop oversells and stock goes negative; in guarded mode one order wins, the other is refused, and stock never drops below zero.
+That screenshot turned out to be fake, but the failure behind it is real and common. Abeg is built to prevent it, and it lets you switch the guardrails off so you can watch it break on purpose, then switch them back on and watch it hold.
 
-Everything runs on real infrastructure — no mocks — and you can poke at all of it live from **the Workshop**.
+## What it does
 
-## 🎛️ The Workshop — turn the knobs, watch the AI react
+You order by typing, or by holding the mic and talking. The assistant answers by calling tools against a Postgres database, so it can only tell you what is actually on the menu, at the real price, in the real quantity. When something runs out, it says so.
 
-Open the **Workshop** (top-right, or press `B`) and you're looking at what an AI engineer actually controls — each with plain-language help and a one-tap **"Try it"**:
+Open **the Workshop** (top right, or press `B`) and you can turn the same knobs an AI engineer turns, each with plain-language help and a one-tap "try it".
 
-<img src="docs/images/workshop.png" alt="The Workshop — live AI controls" width="820" />
+<img src="docs/images/workshop.png" width="820" alt="The Workshop: live controls for the AI" />
 
-- **🧠 The AI's instructions** — the *actual* system prompt, live-editable. Edit it, send a message, watch behaviour change.
-- **🎯 Creativity dial** — temperature, from Focused to Wild.
-- **🛡️ Grounding** — on: the AI answers only from the live database and refuses to speculate; **off: it happily makes up a price.** The single most important lesson, as a toggle.
-- **🎯 Stay on task** — prompt-injection defense (see below).
-- **🔀 The brain** — swap the underlying model (DeepSeek / GPT-4o-mini / Claude Haiku) and watch cost & latency move.
-- **🔑 Bring your own key** — paste your own OpenRouter key; your chats run on your account and skip the demo's limit.
+- **The instructions.** The actual system prompt, editable live. Change it, send a message, watch it obey.
+- **Creativity.** The temperature dial, from focused to wild.
+- **The model.** Swap DeepSeek for GPT-4o-mini or Claude, and watch cost and speed move.
+- **Bring your own key.** Paste your own OpenRouter key. Your chats run on your account and skip the demo's limit.
 
-And the **X-ray** tab replays every turn in plain language — *you said → the AI decided to use a tool → the database answered → it replied* — with the **real tokens, latency and cost** from that turn. No JSON. That's "what happens inside AI engineering," made visible.
+The **X-ray** tab then replays each turn in plain English (you asked, the AI decided to check the database, the database answered, it replied) with the real tokens, time, and cost for that turn.
 
-## The two guardrails every AI product needs
+## The two guardrails
 
-This is the heart of the demo — inspired by the viral moment when a customer talked a fast-food chain's AI into writing them a Python script instead of taking their order.
+This is the part worth stealing.
 
-| Guardrail | Off (the failure) | On (the fix) |
+| Guardrail | Off | On |
 |---|---|---|
-| **🛡️ Grounding** | Invents a plausible price from memory | Refuses to speculate; looks it up in the database |
-| **🎯 Stay on task** | Gets **prompt-injected** — writes your linked-list code | Politely declines and steers back to ordering |
+| **Grounding** | Invents a price from memory | Refuses to guess, checks the database |
+| **Stay on task** | Gets talked into writing your code (the McDonald's bug) | Declines, steers back to ordering |
 
-Both are real: a firm prompt clause **plus** an output-side backstop that catches a slipped answer even if the model caves — and the X-ray shows a *"🛡 blocked"* chip when a guardrail fires. Tap **script #4** ("order jollof, then ask it to reverse a linked list") with **Stay on task** off, watch it get hijacked, then flip it on and watch it hold.
+Both are real: a firm instruction in the prompt, plus a second check on the way out that catches a bad answer even when the model slips. Press `4` to send the "order jollof, then help me reverse a linked list" message with **Stay on task** off, watch it get hijacked, then flip it on and watch it hold.
 
-## The concurrency act
+## When systems bite
 
-<img src="docs/images/race.png" alt="The last-unit race and live inventory" width="820" />
+Two customers order the last plate at the same instant. Press `R`.
 
-Press `R` to send two orders for the *last plate* at the same instant. With **Grounding off** (naive `read-then-write`) the shop oversells and stock goes to **−1**, visibly. Flip it **on** (transactional `SELECT … FOR UPDATE`) and one order wins, the other is refused, and stock never drops below zero. Same app, one toggle — that contrast is the whole lesson.
+<img src="docs/images/race.png" width="820" alt="The last-plate race and live inventory" />
 
-## Features at a glance
+With grounding off (a naive read-then-write) the shop oversells and stock drops to −1. With it on (one transaction, `SELECT ... FOR UPDATE`) one order wins, the other is refused, and stock never goes negative. Same app, one switch.
 
-- 🗣️ **Order by voice or chat** — one agent pipeline, two input paths (hold-to-talk streams speech to text).
-- 🧠 **Grounded agent** — 5 tools, native tool-calling; all money recomputed server-side.
-- 🎛️ **The Workshop** — live, explained controls for prompt, temperature, grounding, on-task, model, and BYOK.
-- 🔍 **X-ray** — plain-language turn trace with real tokens / latency / cost.
-- 🌙 **Light & dark mode** — warm by day, warm by night; respects your OS.
-- 🏁 **Concurrency demo** — guarded vs naive order paths, switchable live.
-- 💸 **Cost-safe by design** — per-IP + daily **rate limits**, **BYOK**, and a graceful "AI is catching its breath" message when a key is throttled.
-- 🔌 **Swappable providers** + a **cached mode** so a dead venue wifi can't kill the demo.
+## Light and dark
 
-## Screenshots
-
-| Dark mode | The beginner "how it works" |
-|---|---|
-| ![dark](docs/images/storefront-dark.png) | ![how it works](docs/images/how-it-works.png) |
+<img src="docs/images/storefront-dark.png" width="820" alt="Abeg in dark mode" />
 
 ## How it works
 
-A plain-language walkthrough and a system diagram open **inside the app** ("How it works" / "System architecture" in the header), and live in [`docs/architecture.md`](docs/architecture.md):
+The app is a React and TypeScript page in your browser. It talks to a Python (FastAPI) server, which runs the agent and coordinates two AI services (OpenRouter for chat and tool-calling, Deepgram for speech) and a Postgres database that holds the menu, the stock, and every order. There is a plain-language walkthrough inside the app too, under "How it works" in the header.
 
-<img src="docs/images/system.png" alt="System architecture: app, server, AI services, database" width="820" />
-
-- **The App** (React + TypeScript + Tailwind, in your browser) talks only to **the Server**.
-- **The Server** (Python · FastAPI) runs the agent and coordinates everything over SSE + WebSockets.
-- **AI services**: OpenRouter (chat / tool-calling) and Deepgram (speech-to-text).
-- **PostgreSQL** stores the menu, stock, and every order — with real transactions and row locks.
+<img src="docs/images/system.png" width="820" alt="How the pieces fit: app, server, AI services, database" />
 
 ## Tech stack
 
 | Layer | Choice |
 |---|---|
-| Frontend | React 18, **TypeScript**, Vite, Tailwind CSS |
-| Backend | Python, FastAPI, uvicorn (SSE + WebSocket) |
-| Database | PostgreSQL (asyncpg, real transactions & row locks) |
-| LLM | OpenRouter (any tool-calling model, e.g. DeepSeek) |
-| Speech-to-text | Deepgram streaming |
+| Frontend | React 18, TypeScript, Vite, Tailwind |
+| Backend | Python, FastAPI, uvicorn (SSE + WebSockets) |
+| Database | PostgreSQL (asyncpg, real transactions and row locks) |
+| Chat and tools | OpenRouter (any tool-calling model) |
+| Speech | Deepgram streaming |
 
-## Quick start
+## Run it locally
 
-You need **Docker** and API keys for [OpenRouter](https://openrouter.ai/keys) and (for voice) [Deepgram](https://console.deepgram.com).
+You need Docker and an [OpenRouter](https://openrouter.ai/keys) key (plus a [Deepgram](https://console.deepgram.com) key if you want voice).
 
 ```bash
 git clone https://github.com/IfeOlulesi/abeg-app.git
 cd abeg-app
-cp .env.example .env        # then paste your keys into .env
-docker compose up           # starts Postgres + the app
-```
-
-Open **http://localhost:8000**.
-
-<details>
-<summary><b>Local dev without Docker</b> (needs <a href="https://docs.astral.sh/uv/">uv</a> + Node)</summary>
-
-```bash
 cp .env.example .env        # paste your keys
-./run.sh                    # brings up Postgres (docker), installs deps, seeds, serves
-# or manually:
-docker compose up -d db
-cd web && npm install && npm run build && cd ..
-uv run uvicorn app.main:app --port 8000
+docker compose up           # starts Postgres and the app
 ```
-</details>
 
-## Presenter controls (keyboard)
+Open http://localhost:8000.
 
-| Key | Action |
-|-----|--------|
-| `1`–`4` | Fire scripted customer messages (`4` = the prompt-injection one) |
-| `R` | Race — two orders for the last unit |
-| `G` | Toggle **Grounding** (naive ⇄ locked path) |
-| `O` | Toggle **Stay on task** (prompt-injection defense) |
+## Presenter keys
+
+| Key | Does |
+|-----|------|
+| `1`–`4` | Send a scripted message (`4` is the prompt-injection one) |
+| `R` | Race two orders for the last plate |
+| `G` | Toggle grounding |
+| `O` | Toggle stay-on-task |
 | `C` | Toggle cached / offline mode |
-| `X` | Reset all data to seed |
-| `B` | Open / close the Workshop |
-
-**The act-two moment:** `G` (grounding off) → `R` → the last unit goes to **−1**, oversold. Then `G` (on) → `X` (reset) → `R` → one order wins, one is refused, stock stays ≥ 0.
-
-## Configuration
-
-All config is via environment variables (see [`.env.example`](.env.example)):
-
-- `DATABASE_URL` — PostgreSQL connection string.
-- `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` — the chat / tool-calling model.
-- `DEEPGRAM_API_KEY` — streaming speech-to-text (voice input only).
-- `APP_URL` — public URL, sent to OpenRouter as the app referer.
-- **Rate limits** (protect your credits on a public deploy): `RATE_LIMIT_ENABLED`, `CHAT_IP_LIMIT`, `CHAT_DAILY_LIMIT`, `STT_IP_LIMIT`, `STT_DAILY_LIMIT`.
-
-Visitors can also **bring their own OpenRouter key** in the Workshop — it's stored only in their browser, sent per-request, never persisted, and bypasses the demo rate limit.
+| `X` | Reset the data |
+| `B` | Open the Workshop |
 
 ## Tests
 
 ```bash
-uv run pytest          # 31 tests; the concurrency suite locks down the race,
-                       # plus grounding, on-task, and rate-limit guards
+uv run pytest    # 31 tests, including the race, the guardrails, and rate limits
 ```
 
-## Deploying
+## It's a demo, not a product
 
-See [`docs/DEPLOY.md`](docs/DEPLOY.md) for container deploys (Railway / Render / Fly.io), custom domains, and the important **cost & safety notes** — this is an unauthenticated demo that spends real API credits.
+No auth, no payments, and a mode that deliberately corrupts data to teach why locking matters. If you host it publicly, put a spending cap on your OpenRouter key, keep the built-in rate limits on, and let visitors bring their own key. Out of scope: auth, payments, delivery, images, admin, mobile layout.
 
-## ⚠️ It's a demo, not a product
+## The masterclass
 
-By design there is **no authentication, no payments, and a mode that deliberately corrupts data** (to teach why locking matters). If you host it publicly, set a **spending cap** on your OpenRouter key (and top up credit to raise the rate-limit ceiling), keep the built-in rate limits on, and let visitors BYOK. Non-goals: auth, payments, delivery, images, admin CRUD, mobile layout.
+Abeg is the live demo from **Break Into AI Engineering**, a free, practical session on getting into the field.
 
-## 🎓 From the masterclass
+<img src="docs/images/masterclass-banner.png" width="820" alt="Break Into AI Engineering, a live masterclass by Ife Abimbola-Olulesi" />
 
-Abeg is the live demo from the **Break Into AI Engineering** masterclass. Want the full recording — how it's built, why grounding and on-task guardrails matter, and how to think like an AI engineer?
+Here is me running the demo live:
 
-### 👉 **Get the recording: [selar.com/38531854y1](https://selar.com/38531854y1)**
+<img src="docs/images/masterclass-demo.png" width="820" alt="Running the Abeg demo live during the masterclass" />
+
+Watch the [recording](https://selar.com/38531854y1).
 
 ## License
 
-[MIT](LICENSE) — do whatever you like; attribution appreciated.
-</content>
+[MIT](LICENSE). Use it however you like.
