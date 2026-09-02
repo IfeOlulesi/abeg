@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import Storefront from './components/Storefront';
 import Chat from './components/Chat';
-import Footer from './components/Footer';
 import Backstage from './components/Backstage';
 import { BackstageIcon } from './components/Icons';
 import { useChat } from './hooks/useChat';
@@ -311,7 +310,6 @@ export default function App() {
           <Storefront products={sortedProducts} onAdd={onAdd} />
           <Chat messages={messages} onSend={sendChat} showConfirm={showConfirm} />
         </main>
-        <Footer />
       </div>
 
       {/* discreet backstage toggle */}

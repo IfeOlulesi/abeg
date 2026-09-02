@@ -9,6 +9,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _env_bool(name: str, default: bool) -> bool:
+    v = os.getenv(name)
+    if v is None:
+        return default
+    return v.strip().lower() in {"1", "true", "yes", "on"}
+
+
 DEFAULT_DATABASE_URL = "postgresql://abeg:abeg@localhost:5432/abeg"
 
 # Curated, tool-calling-capable models the Workshop lets a learner swap between.
@@ -50,6 +58,17 @@ class Settings:
     # Active system prompt. Empty string => use the agent's built-in default,
     # so "reset" is just clearing this back to "".
     system_prompt: str = ""
+
+    # ---- abuse / credit protection for the public demo ----
+    # In-memory limits (single uvicorn process). The hard backstop is still a
+    # spending cap on the OpenRouter/Deepgram keys themselves.
+    rate_limit_enabled: bool = _env_bool("RATE_LIMIT_ENABLED", True)
+    chat_ip_limit: int = int(os.getenv("CHAT_IP_LIMIT", "30"))          # chats / IP / window
+    chat_ip_window_s: int = int(os.getenv("CHAT_IP_WINDOW_S", "3600"))  # window = 1 hour
+    chat_daily_limit: int = int(os.getenv("CHAT_DAILY_LIMIT", "600"))   # chats / day (all IPs)
+    stt_ip_limit: int = int(os.getenv("STT_IP_LIMIT", "15"))            # mic sessions / IP / window
+    stt_ip_window_s: int = int(os.getenv("STT_IP_WINDOW_S", "3600"))
+    stt_daily_limit: int = int(os.getenv("STT_DAILY_LIMIT", "200"))     # mic sessions / day
     database_url: str = field(
         default_factory=lambda: os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
     )

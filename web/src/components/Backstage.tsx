@@ -169,12 +169,12 @@ export default function Backstage({
 
   return (
     <aside
-      className={`fixed inset-y-0 right-0 z-50 flex w-[440px] flex-col border-l border-stone-200 bg-stone-50 shadow-xl transition-transform duration-300 ease-out dark:border-stone-800 dark:bg-stone-950 ${
+      className={`fixed inset-y-0 right-0 z-50 flex w-[440px] flex-col border-l border-stone-200 bg-stone-50 transition-transform duration-300 ease-out dark:border-stone-800 dark:bg-stone-950 ${
         open ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
-      {/* header */}
-      <div className="flex items-center gap-3 border-b border-stone-200 bg-white px-5 py-4 dark:border-stone-800 dark:bg-stone-900">
+      {/* header — matches the app header height (h-16) */}
+      <div className="flex h-16 shrink-0 items-center gap-3 border-b border-stone-200 bg-white px-5 dark:border-stone-800 dark:bg-stone-900">
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-stone-900 text-white dark:bg-stone-700">
           <BackstageIcon className="h-4 w-4" />
         </div>

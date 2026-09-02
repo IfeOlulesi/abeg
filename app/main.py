@@ -22,6 +22,7 @@ from app import tools
 from app.config import settings, AVAILABLE_MODELS
 from app.events import bus, make_event
 from app.providers.stt import get_stt
+from app.ratelimit import limiter
 
 # --------------------------------------------------------------------------
 # paths
@@ -77,6 +78,35 @@ def _state() -> dict:
 
 def _sse(event: dict) -> str:
     return f"data: {json.dumps(event, default=str)}\n\n"
+
+
+_SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "X-Accel-Buffering": "no",
+    "Connection": "keep-alive",
+}
+
+
+def _client_ip(request: Request) -> str:
+    """Best-effort client IP, honouring the platform proxy's X-Forwarded-For."""
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _limit_text(reason: str) -> str:
+    if reason == "daily":
+        return (
+            "This live demo has reached its shared daily limit — it keeps the AI "
+            "affordable to run for everyone. Please try again tomorrow, or clone the "
+            "repo and run it with your own key. 🙏"
+        )
+    return (
+        "You've reached the demo's limit for now — it keeps the live AI affordable "
+        "to run. Give it a few minutes and try again, or clone the repo to run it "
+        "yourself. 🙏"
+    )
 
 
 async def _safe_json(request: Request) -> dict:
@@ -202,6 +232,24 @@ async def api_chat(request: Request):
     session_id = str(body.get("session_id") or "anon")
     message = str(body.get("message") or "")
 
+    # Abuse/credit guard: bound how much of the live AI a single visitor (or the
+    # whole demo, per day) can spend. Returns a friendly in-chat message instead.
+    if settings.rate_limit_enabled:
+        ok, why = limiter.check(
+            f"chat:{_client_ip(request)}",
+            settings.chat_ip_limit,
+            settings.chat_ip_window_s,
+            settings.chat_daily_limit,
+        )
+        if not ok:
+            text = _limit_text(why)
+
+            async def limited():
+                ev = make_event("assistant_done", {"text": text}, session_id)
+                yield _sse(ev)
+
+            return StreamingResponse(limited(), media_type="text/event-stream", headers=_SSE_HEADERS)
+
     async def gen():
         try:
             async for event in agent.run_turn(app.state.pool, session_id, message):
@@ -211,12 +259,7 @@ async def api_chat(request: Request):
             bus.publish(err)
             yield _sse(err)
 
-    headers = {
-        "Cache-Control": "no-cache",
-        "X-Accel-Buffering": "no",
-        "Connection": "keep-alive",
-    }
-    return StreamingResponse(gen(), media_type="text/event-stream", headers=headers)
+    return StreamingResponse(gen(), media_type="text/event-stream", headers=_SSE_HEADERS)
 
 
 # --------------------------------------------------------------------------
@@ -281,6 +324,20 @@ async def api_events(request: Request):
 @app.websocket("/ws/stt")
 async def ws_stt(ws: WebSocket):
     await ws.accept()
+    # Credit guard for the voice path (Deepgram is billed per minute of audio).
+    if settings.rate_limit_enabled:
+        xff = ws.headers.get("x-forwarded-for", "")
+        ip = xff.split(",")[0].strip() if xff else (ws.client.host if ws.client else "unknown")
+        ok, why = limiter.check(
+            f"stt:{ip}", settings.stt_ip_limit, settings.stt_ip_window_s, settings.stt_daily_limit
+        )
+        if not ok:
+            try:
+                await ws.send_json({"type": "error", "message": _limit_text(why)})
+            except Exception:  # noqa: BLE001
+                pass
+            await ws.close()
+            return
     try:
         await get_stt().relay(ws)
     except Exception:  # noqa: BLE001
