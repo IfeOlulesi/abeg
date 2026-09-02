@@ -175,6 +175,15 @@ export const TypeIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const KeyIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base} {...p}>
+    <circle cx="7.5" cy="15.5" r="4" />
+    <path d="M10.3 12.7 20 3" />
+    <path d="m16 7 2 2" />
+    <path d="m13 10 2 2" />
+  </svg>
+);
+
 export const TargetIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base} {...p}>
     <circle cx="12" cy="12" r="9" />

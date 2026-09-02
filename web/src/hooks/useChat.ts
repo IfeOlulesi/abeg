@@ -53,9 +53,20 @@ export function useChat(sessionId: string, onUserSend?: (msg: string) => void) {
       let gotDelta = false;
 
       try {
+        // BYOK: if the visitor saved their own OpenRouter key, send it so their
+        // calls are billed to them (and skip the demo rate limit).
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        let byok = '';
+        try {
+          byok = localStorage.getItem('openrouter_key') || '';
+        } catch {
+          /* noop */
+        }
+        if (byok) headers['X-OpenRouter-Key'] = byok;
+
         const resp = await fetch('/api/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ session_id: sessionId, message }),
         });
         if (!resp.ok || !resp.body) throw new Error('chat http ' + resp.status);

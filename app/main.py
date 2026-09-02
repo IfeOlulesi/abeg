@@ -233,9 +233,18 @@ async def api_chat(request: Request):
     session_id = str(body.get("session_id") or "anon")
     message = str(body.get("message") or "")
 
+    # BYOK: a visitor can bring their own OpenRouter key (header preferred so it
+    # isn't echoed in the body). Their calls are billed to them and skip the
+    # demo rate limit. Malformed keys are ignored (falls back to the demo key).
+    byok = (request.headers.get("x-openrouter-key") or str(body.get("openrouter_key") or "")).strip()
+    if byok and not byok.startswith("sk-or-"):
+        byok = ""
+    using_byok = bool(byok)
+
     # Abuse/credit guard: bound how much of the live AI a single visitor (or the
-    # whole demo, per day) can spend. Returns a friendly in-chat message instead.
-    if settings.rate_limit_enabled:
+    # whole demo, per day) can spend. BYOK users bypass it. Returns a friendly
+    # in-chat message instead of calling the model.
+    if settings.rate_limit_enabled and not using_byok:
         ok, why = limiter.check(
             f"chat:{_client_ip(request)}",
             settings.chat_ip_limit,
@@ -253,11 +262,22 @@ async def api_chat(request: Request):
 
     async def gen():
         try:
-            async for event in agent.run_turn(app.state.pool, session_id, message):
+            async for event in agent.run_turn(
+                app.state.pool, session_id, message, api_key=byok or None
+            ):
                 yield _sse(event)
         except Exception as exc:  # noqa: BLE001
             low = str(exc).lower()
-            if any(k in low for k in ("403", "429", "forbidden", "rate limit", "too many")):
+            if using_byok and ("401" in low or "unauthorized" in low):
+                ev = make_event(
+                    "assistant_done",
+                    {
+                        "text": "That OpenRouter key was rejected — double-check it under "
+                        "“Use your own AI key” in the Workshop. 🔑"
+                    },
+                    session_id,
+                )
+            elif any(k in low for k in ("403", "429", "forbidden", "rate limit", "too many")):
                 # Upstream (OpenRouter/Deepgram) throttle — show a calm message,
                 # not a scary raw error, so the demo never looks broken.
                 ev = make_event(

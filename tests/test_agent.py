@@ -104,7 +104,7 @@ class _LoopLlm:
 async def test_bounded_tool_calls(pool, monkeypatch):
     settings.cached_mode = True
     settings.max_tool_calls = 3
-    monkeypatch.setattr(agent, "get_llm", lambda: _LoopLlm())
+    monkeypatch.setattr(agent, "get_llm", lambda *a, **k: _LoopLlm())
     sid = _new_sid()
 
     events = await _drive(pool, sid, "loop please")
@@ -134,7 +134,7 @@ class _UngroundedLlm:
 async def test_ungrounded_answer_blocked(pool, monkeypatch):
     settings.cached_mode = True
     settings.guardrails = True
-    monkeypatch.setattr(agent, "get_llm", lambda: _UngroundedLlm())
+    monkeypatch.setattr(agent, "get_llm", lambda *a, **k: _UngroundedLlm())
     sid = _new_sid()
 
     events = await _drive(pool, sid, "how much is jollof?")
@@ -155,7 +155,7 @@ async def test_ungrounded_guard_off_when_guardrails_off(pool, monkeypatch):
     """With guardrails off, the same ungrounded reply passes through untouched."""
     settings.cached_mode = True
     settings.guardrails = False
-    monkeypatch.setattr(agent, "get_llm", lambda: _UngroundedLlm())
+    monkeypatch.setattr(agent, "get_llm", lambda *a, **k: _UngroundedLlm())
     sid = _new_sid()
 
     events = await _drive(pool, sid, "how much is jollof?")

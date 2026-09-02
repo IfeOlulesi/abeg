@@ -246,7 +246,9 @@ class CachedLlm(LlmProvider):
 # --------------------------------------------------------------------------
 # factory
 # --------------------------------------------------------------------------
-def get_llm() -> LlmProvider:
+def get_llm(api_key: str | None = None) -> LlmProvider:
+    # `api_key` is a per-request BYOK key: when a visitor brings their own
+    # OpenRouter key, calls are billed to them (and skip the demo's rate limit).
     if settings.cached_mode:
         return CachedLlm()
-    return OpenRouterLlm()
+    return OpenRouterLlm(api_key=api_key)

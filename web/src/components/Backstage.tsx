@@ -21,6 +21,7 @@ import {
   BotIcon,
 } from './Icons';
 import { naira, firstLine, formatCost, formatMs, tempLabel } from '../lib/format';
+import ByokCard from './ByokCard';
 import type {
   Model,
   Product,
@@ -406,6 +407,9 @@ export default function Backstage({
               </div>
               <Toggle on={cached} onChange={onToggleCached} />
             </section>
+
+            {/* bring your own key */}
+            <ByokCard />
           </div>
         )}
 

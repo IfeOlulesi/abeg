@@ -202,6 +202,7 @@ async def run_turn(
     session_id: str,
     user_text: str,
     history: list[dict] | None = None,
+    api_key: str | None = None,
 ) -> AsyncIterator[dict]:
     # Build/resume history.
     if history is not None:
@@ -214,7 +215,7 @@ async def run_turn(
         messages = [_system_message()] + messages
     messages.append({"role": "user", "content": user_text})
 
-    llm = get_llm()
+    llm = get_llm(api_key=api_key)
     tool_calls_this_turn = 0
     final_text_parts: list[str] = []
     bounded_hit = False
