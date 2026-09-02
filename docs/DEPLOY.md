@@ -18,6 +18,9 @@ automatically. There is no separate migration step.
    - `DATABASE_URL` — your Postgres connection string.
    - `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` — the chat/tool-calling model.
    - `DEEPGRAM_API_KEY` — voice input (optional).
+   - `APP_URL` — your public URL (sent to OpenRouter as the app referer).
+   - **Rate limits** (optional, on by default): `RATE_LIMIT_ENABLED`,
+     `CHAT_IP_LIMIT`, `CHAT_DAILY_LIMIT`, `STT_IP_LIMIT`, `STT_DAILY_LIMIT`.
 3. The provided **[`Dockerfile`](../Dockerfile)** (multi-stage: builds the React app, runs FastAPI).
 
 ---
@@ -65,12 +68,18 @@ This is a **teaching demo with no authentication**. If you put it on the public
 internet:
 
 - **Anyone can use it, spending _your_ API credits.** Set a hard **spending cap**
-  on your OpenRouter key and your Deepgram usage. Consider a low-limit key.
+  on your OpenRouter key and your Deepgram usage. Note: OpenRouter's rate limits
+  scale with your credit balance — a near-empty key gets throttled (403s), so
+  keep a little credit on it.
+- **Rate limiting is built in** (per-IP window + global daily cap on chat & voice)
+  and on by default — tune it with the `*_LIMIT` env vars above.
+- **BYOK:** visitors can paste their own OpenRouter key in the Workshop; their
+  calls are billed to them and bypass the demo limit — the cheapest way to keep a
+  public demo alive.
 - **Naive mode intentionally corrupts data** (overselling stock) to teach why
-  locking matters. Use `X` to reset; keep **guardrails on** by default.
+  locking matters. Use `X` to reset; keep **grounding on** by default.
 - Prefer a **short-lived** deployment for a talk, or leave it in **cached mode**
   (press `C`) so it runs without hitting the AI at all.
-- No rate limiting is built in — add one at your proxy/platform if it stays up.
 
 ---
 
@@ -92,9 +101,9 @@ git init -b main
 git add .
 git status          # SANITY CHECK: confirm there is NO .env and NO .claude/
 git commit -m "Abeg — AI order agent that takes orders by chat or voice"
-gh repo create abeg --public --source=. --remote=origin --push
+gh repo create abeg-app --public --source=. --remote=origin --push
 ```
 
 Then set the repo description, topics (`ai`, `agent`, `fastapi`, `react`,
-`postgresql`, `voice`, `openrouter`, `deepgram`), and a social preview image
-(`docs/images/storefront.png`).
+`typescript`, `postgresql`, `voice`, `openrouter`, `deepgram`), and a social
+preview image (`docs/images/storefront.png`).

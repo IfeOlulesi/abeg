@@ -12,17 +12,17 @@ all state lives in PostgreSQL.
 
 ```mermaid
 flowchart LR
-  subgraph Browser["Browser · React + Tailwind SPA"]
+  subgraph Browser["Browser · React + TypeScript + Tailwind SPA"]
     direction TB
     SF["Storefront<br/>product cards · live stock"]
     CH["Order Assistant<br/>chat · markdown · hold-to-talk voice"]
-    BS["Backstage<br/>controls · inventory · activity"]
+    BS["Workshop<br/>live AI knobs · X-ray trace · inventory"]
   end
 
   subgraph API["FastAPI · uvicorn — app/"]
     direction TB
     R{{"HTTP + WS routes · main.py"}}
-    AG["Agent loop · agent.py<br/>tool loop · bounded · ungrounded guard"]
+    AG["Agent loop · agent.py<br/>tool loop · bounded · grounding + on-task guards"]
     TL["5 Tools · tools.py<br/>search · check · reserve · place · cancel"]
     EB(["Event bus · events.py<br/>pub/sub → operator stream"])
     CFG["Runtime config · config.py<br/>guardrails · cached · TTL"]

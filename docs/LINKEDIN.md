@@ -28,9 +28,10 @@ Under the hood:
 • OpenRouter (DeepSeek) for the agent's tool-calling
 • Deepgram for live voice-to-text
 
-The assistant can only answer by **calling tools against the database** — it never invents a price or makes up stock. There's a "Backstage" panel that shows every tool call live, and a cached mode so dead venue wifi can't kill the demo.
+The assistant can only answer by **calling tools against the database** — it never invents a price or makes up stock. There's a live **Workshop** where you can flip the AI's guardrails on and off (including a prompt-injection defense) and watch every tool call, token and cost in real time.
 
-Code + a beginner-friendly walkthrough 👉 [repo link]
+▶️ Try it live 👉 https://abeg.ifeolulesi.com
+💻 Code 👉 https://github.com/IfeOlulesi/abeg-app
 
 If you teach, present, or just enjoy watching software break on purpose — take it for a spin. ⭐
 
@@ -46,6 +47,6 @@ I built **Abeg**, an open-source AI ordering assistant (voice + chat), specifica
 
 React + FastAPI + PostgreSQL + OpenRouter + Deepgram. The AI only answers by querying the real database — no made-up prices.
 
-Try it / read the walkthrough 👉 [repo link]
+▶️ Live demo 👉 https://abeg.ifeolulesi.com · Code 👉 https://github.com/IfeOlulesi/abeg-app
 
 \#AI #Databases #OpenSource #Python #React #Concurrency

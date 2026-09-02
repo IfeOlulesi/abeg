@@ -54,7 +54,17 @@ export default function Header({
             System architecture
           </button>
           <a
-            href="https://github.com/IfeOlulesi/abeg"
+            href="https://selar.com/38531854y1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`hidden sm:inline-flex ${base} ${idle}`}
+            title="Get the full Break Into AI Engineering masterclass recording"
+          >
+            <span className="text-[13px] leading-none">🎓</span>
+            Masterclass
+          </a>
+          <a
+            href="https://github.com/IfeOlulesi/abeg-app"
             target="_blank"
             rel="noopener noreferrer"
             className={`hidden sm:inline-flex ${base} ${idle}`}
