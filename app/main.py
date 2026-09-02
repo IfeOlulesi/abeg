@@ -62,6 +62,7 @@ def _state() -> dict:
     return {
         "guardrails": settings.guardrails,
         "cached_mode": settings.cached_mode,
+        "on_task": settings.on_task,
         "llm_provider": settings.llm_provider,
         "stt_provider": settings.stt_provider,
         "reservation_ttl_seconds": settings.reservation_ttl_seconds,
@@ -366,6 +367,14 @@ async def control_cached(request: Request):
     body = await _safe_json(request)
     settings.cached_mode = bool(body.get("on"))
     bus.publish(make_event("cached", {"on": settings.cached_mode}))
+    return _state()
+
+
+@app.post("/api/control/on_task")
+async def control_on_task(request: Request):
+    body = await _safe_json(request)
+    settings.on_task = bool(body.get("on"))
+    bus.publish(make_event("state", _state()))
     return _state()
 
 

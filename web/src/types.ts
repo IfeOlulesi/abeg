@@ -86,6 +86,8 @@ export interface Trace {
   cached: boolean;
   guardrails: boolean;
   grounding_blocked: boolean;
+  on_task: boolean;
+  on_task_blocked: boolean;
   bounded_hit: boolean;
   tool_calls: number;
   tokens?: Tokens | null;
@@ -120,6 +122,7 @@ export interface InventoryUpdateData {
 export interface StateData {
   guardrails?: boolean;
   cached_mode?: boolean;
+  on_task?: boolean;
   temperature?: number;
   model?: string;
   models?: Model[];
@@ -186,6 +189,7 @@ export interface EventData {
   products?: Product[];
   guardrails?: boolean;
   cached_mode?: boolean;
+  on_task?: boolean;
   temperature?: number;
   model?: string;
   models?: Model[];
@@ -213,6 +217,7 @@ export interface EventData {
 export interface AppState {
   guardrails?: boolean;
   cached_mode?: boolean;
+  on_task?: boolean;
   temperature?: number;
   model?: string;
   models?: Model[];

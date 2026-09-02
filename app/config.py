@@ -58,6 +58,10 @@ class Settings:
     # Active system prompt. Empty string => use the agent's built-in default,
     # so "reset" is just clearing this back to "".
     system_prompt: str = ""
+    # Prompt-injection / off-task defense. On = refuse anything that isn't food
+    # ordering (write code, general help, roleplay…). Off = hijackable, which
+    # reproduces the McDonald's "write me a Python script" incident.
+    on_task: bool = True
 
     # ---- abuse / credit protection for the public demo ----
     # In-memory limits (single uvicorn process). The hard backstop is still a

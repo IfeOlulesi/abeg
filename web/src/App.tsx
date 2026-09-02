@@ -31,6 +31,7 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [guardrails, setGuardrails] = useState(true);
   const [cached, setCached] = useState(false);
+  const [onTask, setOnTask] = useState(true);
   const [connected, setConnected] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // In-app view: the shop, or one of the explainer diagrams (rendered inline so
@@ -56,6 +57,8 @@ export default function App() {
   guardrailsRef.current = guardrails;
   const cachedRef = useRef(cached);
   cachedRef.current = cached;
+  const onTaskRef = useRef(onTask);
+  onTaskRef.current = onTask;
 
   const nameFor = useCallback((sku: string) => {
     const p = productsRef.current.find((x) => x.sku === sku);
@@ -83,6 +86,7 @@ export default function App() {
         case 'state':
           if (typeof d.guardrails === 'boolean') setGuardrails(d.guardrails);
           if (typeof d.cached_mode === 'boolean') setCached(d.cached_mode);
+          if (typeof d.on_task === 'boolean') setOnTask(d.on_task);
           if (typeof d.temperature === 'number') setTemperature(d.temperature);
           if (typeof d.model === 'string') setModel(d.model);
           if (Array.isArray(d.models)) setModels(d.models);
@@ -185,6 +189,7 @@ export default function App() {
         const st = await getState();
         setGuardrails(!!st.guardrails);
         setCached(!!st.cached_mode);
+        if (typeof st.on_task === 'boolean') setOnTask(st.on_task);
         if (typeof st.temperature === 'number') setTemperature(st.temperature);
         if (typeof st.model === 'string') setModel(st.model);
         if (Array.isArray(st.models)) setModels(st.models);
@@ -219,6 +224,10 @@ export default function App() {
   }, []);
   const onToggleCached = useCallback((next: boolean) => {
     post('/api/control/cached', { on: !!next });
+  }, []);
+  const onToggleOnTask = useCallback((next: boolean) => {
+    setOnTask(!!next); // optimistic; 'state' event confirms
+    post('/api/control/on_task', { on: !!next });
   }, []);
   const onTemperature = useCallback((value: number) => {
     setTemperature(value); // optimistic; 'state' event confirms
@@ -275,6 +284,11 @@ export default function App() {
           e.preventDefault();
           onToggleGuardrails(!guardrailsRef.current);
           break;
+        case 'o':
+        case 'O':
+          e.preventDefault();
+          onToggleOnTask(!onTaskRef.current);
+          break;
         case 'x':
         case 'X':
           e.preventDefault();
@@ -296,7 +310,7 @@ export default function App() {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onScript, onRace, onReset, onToggleGuardrails, onToggleCached]);
+  }, [onScript, onRace, onReset, onToggleGuardrails, onToggleCached, onToggleOnTask]);
 
   const sortedProducts = useMemo(() => products, [products]);
 
@@ -338,6 +352,8 @@ export default function App() {
         cached={cached}
         onToggleGuardrails={onToggleGuardrails}
         onToggleCached={onToggleCached}
+        onTask={onTask}
+        onToggleOnTask={onToggleOnTask}
         temperature={temperature}
         onTemperature={onTemperature}
         model={model}

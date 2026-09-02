@@ -9,6 +9,7 @@ const nextId = () => `m${Date.now()}_${seq++}`;
 function friendlyNote(message: unknown): string {
   const m = String(message || '').toLowerCase();
   if (m.includes('ungrounded')) return 'Guardrail: held back an unverified answer';
+  if (m.includes('off-task')) return 'Guardrail: blocked an off-task request';
   if (m.includes('bounded')) return 'Reached the tool-step limit';
   return firstLine(message);
 }

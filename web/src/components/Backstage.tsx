@@ -11,6 +11,7 @@ import {
   BrainIcon,
   SparkIcon,
   ShieldIcon,
+  TargetIcon,
   ChipIcon,
   ClockIcon,
   CoinIcon,
@@ -109,8 +110,10 @@ interface BackstageProps {
   onClose: () => void;
   guardrails: boolean;
   cached: boolean;
+  onTask: boolean;
   onToggleGuardrails: (next: boolean) => void;
   onToggleCached: (next: boolean) => void;
+  onToggleOnTask: (next: boolean) => void;
   temperature: number;
   onTemperature: (value: number) => void;
   model: string;
@@ -135,8 +138,10 @@ export default function Backstage({
   onClose,
   guardrails,
   cached,
+  onTask,
   onToggleGuardrails,
   onToggleCached,
+  onToggleOnTask,
   temperature,
   onTemperature,
   model,
@@ -349,6 +354,29 @@ export default function Backstage({
               </div>
             </Knob>
 
+            {/* stay on task — prompt-injection defense */}
+            <Knob
+              icon={TargetIcon}
+              accent={onTask ? 'green' : 'stone'}
+              title="Stay on task"
+              blurb="The famous one: a customer once talked a fast-food bot into writing code instead of taking the order. On: the AI politely refuses anything that isn't food. Off: it can be hijacked."
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className={`text-[13px] font-bold ${onTask ? 'text-green-600 dark:text-green-400' : 'text-stone-400 dark:text-stone-500'}`}
+                >
+                  {onTask ? 'On — sticks to food orders' : 'Off — can be hijacked'}
+                </span>
+                <Toggle on={onTask} onChange={onToggleOnTask} />
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-stone-50 px-3 py-2 dark:bg-stone-800">
+                <span className="min-w-0 text-[11.5px] text-stone-500 dark:text-stone-400">
+                  Order jollof, then ask it to write Python for you — off, it obliges; on, it declines.
+                </span>
+                <TryButton onClick={() => onScript(4)}>Try it</TryButton>
+              </div>
+            </Knob>
+
             {/* model */}
             <Knob
               icon={ChipIcon}
@@ -552,6 +580,11 @@ function Anatomy({ trace, timeline }: { trace: Trace | null; timeline: TimelineI
         {trace.grounding_blocked && (
           <span className="rounded-full bg-green-50 px-2.5 py-1 text-green-600 dark:bg-green-500/15 dark:text-green-400">
             🛡 blocked a made-up answer
+          </span>
+        )}
+        {trace.on_task_blocked && (
+          <span className="rounded-full bg-green-50 px-2.5 py-1 text-green-600 dark:bg-green-500/15 dark:text-green-400">
+            🛡 blocked an off-task request
           </span>
         )}
         {trace.bounded_hit && (
